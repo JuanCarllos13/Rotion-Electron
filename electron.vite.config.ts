@@ -1,16 +1,25 @@
-import { resolve } from 'path'
+import path, { resolve } from 'node:path'
+import tsconfigPathsPlugin from 'vite-tsconfig-paths'
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from 'tailwindcss'
 
+const tsconfigPaths = tsconfigPathsPlugin({
+  projects: [path.resolve('tsconfig.json')],
+})
+
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin()]
+    plugins: [tsconfigPaths, externalizeDepsPlugin()],
+    publicDir: path.resolve(__dirname, 'resources'),
   },
   preload: {
-    plugins: [externalizeDepsPlugin()]
+    plugins: [tsconfigPaths, externalizeDepsPlugin()],
   },
   renderer: {
+    define: {
+      'process.platform': JSON.stringify(process.platform),
+    },
     css: {
       postcss: {
         plugins: [
@@ -22,9 +31,9 @@ export default defineConfig({
     },
     resolve: {
       alias: {
-        '@renderer': resolve('src/renderer/src')
-      }
+        '@renderer': resolve('src/renderer/src'),
+      },
     },
-    plugins: [react()]
-  }
+    plugins: [tsconfigPaths, react()],
+  },
 })
